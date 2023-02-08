@@ -45,8 +45,10 @@ class PDFViewer extends StatefulWidget {
   final int? zoomSteps;
   final double? minScale;
   final double? maxScale;
+  final double? initialScale;
   final double? panLimit;
   final ValueChanged<int>? onPageChanged;
+  final ValueChanged<double>? onZoomChanged;
 
   final Widget Function(
     BuildContext,
@@ -76,11 +78,13 @@ class PDFViewer extends StatefulWidget {
     this.zoomSteps,
     this.minScale,
     this.maxScale,
+    this.initialScale,
     this.panLimit,
     this.progressIndicator,
     this.pickerButtonColor,
     this.pickerIconColor,
     this.onPageChanged,
+    this.onZoomChanged,
   }) : super(key: key);
   @override
   _PDFViewerState createState() => _PDFViewerState();
@@ -126,6 +130,7 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   Future<void> _preloadPages() async {
+    double zoom = widget.initialScale ?? 1.0;
     int countvar = 1;
     for (final _ in List.filled(widget.document.count, null)) {
       final data = await widget.document.get(
@@ -134,6 +139,7 @@ class _PDFViewerState extends State<PDFViewer> {
         zoomSteps: widget.zoomSteps,
         minScale: widget.minScale,
         maxScale: widget.maxScale,
+        initialScale: zoom,
         panLimit: widget.panLimit,
       );
       _pages![countvar - 1] = data;
@@ -142,11 +148,20 @@ class _PDFViewerState extends State<PDFViewer> {
     }
   }
 
-  void onZoomChanged(double scale) =>
-      setState(() => _swipeEnabled = scale == 1.0);
+  void onZoomChanged(double scale) {
+    setState(() => _swipeEnabled = scale == 1.0);
+    if (widget.onZoomChanged != null) widget.onZoomChanged!(scale);
+    for ( final page in _pages!){
+      if (page != null){
+        page.initialScale = scale;
+      }
+    }
+  }
 
   Future<void> _loadPage() async {
-    if (_pages![_pageNumber - 1] != null) return;
+    final double zoom = widget.initialScale ?? 1.0;
+    if (_pages![_pageNumber - 1] != null ) return;
+
     setState(() => _isLoading = true);
     final data = await widget.document.get(
       page: _pageNumber,
@@ -154,6 +169,7 @@ class _PDFViewerState extends State<PDFViewer> {
       zoomSteps: widget.zoomSteps,
       minScale: widget.minScale,
       maxScale: widget.maxScale,
+      initialScale: zoom,
       panLimit: widget.panLimit,
     );
     _pages![_pageNumber - 1] = data;
@@ -237,7 +253,7 @@ class _PDFViewerState extends State<PDFViewer> {
             scrollDirection: widget.scrollDirection ?? Axis.horizontal,
             controller: _pageController,
             itemCount: _pages?.length ?? 0,
-            itemBuilder: (context, index) => _pages![index] == null
+            itemBuilder: (context, index) => _pages![index] == null || _isLoading
                 ? Center(
                     child: widget.progressIndicator ??
                         const CircularProgressIndicator.adaptive(),

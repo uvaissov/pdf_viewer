@@ -90,6 +90,7 @@ class PDFDocument {
     final int? zoomSteps,
     final double? minScale,
     final double? maxScale,
+    final double? initialScale,
     final double? panLimit,
   }) async {
     assert(page > 0);
@@ -103,6 +104,7 @@ class PDFDocument {
       zoomSteps: zoomSteps ?? 3,
       minScale: minScale ?? 1.0,
       maxScale: maxScale ?? 5.0,
+      initialScale: initialScale ?? 1.0,
       panLimit: panLimit ?? 1.0,
     );
   }
@@ -112,6 +114,7 @@ class PDFDocument {
     final int? zoomSteps,
     final double? minScale,
     final double? maxScale,
+    final double? initialScale,
     final double? panLimit,
   }) async {
     int countvar = 1;
@@ -125,6 +128,7 @@ class PDFDocument {
         zoomSteps: zoomSteps ?? 3,
         minScale: minScale ?? 1.0,
         maxScale: maxScale ?? 5.0,
+        initialScale: initialScale ?? 1.0,
         panLimit: panLimit ?? 1.0,
       ));
       countvar++;
@@ -133,7 +137,7 @@ class PDFDocument {
   }
 
   // Stream all pages
-  Stream<PDFPage?> getAll({final Function(double)? onZoomChanged}) {
+  Stream<PDFPage?> getAll({final Function(double)? onZoomChanged, double scale = 1.0}) {
     return Future.forEach<PDFPage?>(List.filled(count, null), (i) async {
       final data = await _channel
           .invokeMethod('getPage', {'filePath': _filePath, 'pageNumber': i});
@@ -141,6 +145,7 @@ class PDFDocument {
         data as String?,
         1,
         onZoomChanged: onZoomChanged,
+        initialScale: scale,
       );
     }).asStream() as Stream<PDFPage?>;
   }
