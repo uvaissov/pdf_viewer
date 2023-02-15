@@ -15,16 +15,20 @@ class PDFPage extends StatefulWidget {
   final String? imgPath;
   final int num;
   final Function(double)? onZoomChanged;
+  final Function(Offset)? onOffsetChanged;
   final int zoomSteps;
   final double minScale;
   final double maxScale;
   final double panLimit;
   double initialScale;
+  Offset initialOffset;
   PDFPage(
     this.imgPath,
     this.num, {
     this.onZoomChanged,
+    this.onOffsetChanged,
     required this.initialScale,
+    this.initialOffset = Offset.zero,
     this.zoomSteps = 3,
     this.minScale = 1.0,
     this.maxScale = 5.0,
@@ -68,12 +72,13 @@ class _PDFPageState extends State<PDFPage> {
   Widget build(BuildContext context) {
     return ZoomableWidget(
       onZoomChanged: widget.onZoomChanged,
+      onOffsetChanged: widget.onOffsetChanged,
       zoomSteps: widget.zoomSteps,
       minScale: widget.minScale,
       panLimit: widget.panLimit,
       maxScale: widget.maxScale,
       initialScale: widget.initialScale,
-      initialOffset: Offset(50,150),
+      initialOffset: widget.initialOffset,
       child: Image(image: provider),
     );
   }

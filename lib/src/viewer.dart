@@ -46,9 +46,11 @@ class PDFViewer extends StatefulWidget {
   final double? minScale;
   final double? maxScale;
   final double? initialScale;
+  final Offset initialOffset;
   final double? panLimit;
   final ValueChanged<int>? onPageChanged;
   final ValueChanged<double>? onZoomChanged;
+  final ValueChanged<Offset>? onOffsetChanged;
 
   final Widget Function(
     BuildContext,
@@ -79,12 +81,14 @@ class PDFViewer extends StatefulWidget {
     this.minScale,
     this.maxScale,
     this.initialScale,
+    this.initialOffset = Offset.zero,
     this.panLimit,
     this.progressIndicator,
     this.pickerButtonColor,
     this.pickerIconColor,
     this.onPageChanged,
     this.onZoomChanged,
+    this.onOffsetChanged,
   }) : super(key: key);
   @override
   _PDFViewerState createState() => _PDFViewerState();
@@ -130,12 +134,14 @@ class _PDFViewerState extends State<PDFViewer> {
   }
 
   Future<void> _preloadPages() async {
-    double zoom = widget.initialScale ?? 1.0;
+
     int countvar = 1;
     for (final _ in List.filled(widget.document.count, null)) {
+      double zoom = widget.initialScale ?? 1.0;
       final data = await widget.document.get(
         page: countvar,
         onZoomChanged: onZoomChanged,
+        onOffsetChanged: onOffsetChanged,
         zoomSteps: widget.zoomSteps,
         minScale: widget.minScale,
         maxScale: widget.maxScale,
@@ -143,7 +149,6 @@ class _PDFViewerState extends State<PDFViewer> {
         panLimit: widget.panLimit,
       );
       _pages![countvar - 1] = data;
-
       countvar++;
     }
   }
@@ -154,6 +159,16 @@ class _PDFViewerState extends State<PDFViewer> {
     for ( final page in _pages!){
       if (page != null){
         page.initialScale = scale;
+        page.initialOffset = Offset.zero;
+      }
+    }
+  }
+
+  void onOffsetChanged(Offset offset) {
+    if(widget.onOffsetChanged != null) widget.onOffsetChanged!(offset);
+    for ( final page in _pages!){
+      if (page != null){
+        page.initialOffset = offset;
       }
     }
   }
@@ -166,11 +181,13 @@ class _PDFViewerState extends State<PDFViewer> {
     final data = await widget.document.get(
       page: _pageNumber,
       onZoomChanged: onZoomChanged,
+      onOffsetChanged: onOffsetChanged,
       zoomSteps: widget.zoomSteps,
       minScale: widget.minScale,
       maxScale: widget.maxScale,
       initialScale: zoom,
       panLimit: widget.panLimit,
+      initialOffset: widget.initialOffset,
     );
     _pages![_pageNumber - 1] = data;
     if (mounted) setState(() => _isLoading = false);

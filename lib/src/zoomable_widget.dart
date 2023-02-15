@@ -24,6 +24,7 @@ class ZoomableWidget extends StatefulWidget {
     this.enableFling = true,
     this.flingFactor = 1.0,
     this.onZoomChanged,
+    this.onOffsetChanged,
     this.resetDuration = const Duration(milliseconds: 250),
     this.resetCurve = Curves.easeInOut,
   }) : super(key: key);
@@ -81,6 +82,9 @@ class ZoomableWidget extends StatefulWidget {
 
   /// When the scale value changed, the callback will be invoked.
   final ValueChanged<double>? onZoomChanged;
+
+  /// When the scale value changed, the callback will be invoked.
+  final ValueChanged<Offset>? onOffsetChanged;
 
   /// The duration of reset animation.
   final Duration resetDuration;
@@ -166,6 +170,9 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
         );
         _pan = _baseOffset + _marginOffset;
       }
+
+      if (widget.onOffsetChanged != null) widget.onOffsetChanged!(_pan);
+
       setState(() {});
     }
   }
@@ -226,6 +233,7 @@ class _ZoomableWidgetState extends State<ZoomableWidget> {
       _zoom = _tmpZoom;
       if (widget.onZoomChanged != null) widget.onZoomChanged!(_zoom);
       _pan = Offset.zero;
+      if (widget.onOffsetChanged != null) widget.onOffsetChanged!(_pan);
       _rotation = 0.0;
       _previousZoom = _tmpZoom;
       if (_tmpZoom == 1.0) {
