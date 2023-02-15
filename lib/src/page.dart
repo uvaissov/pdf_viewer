@@ -73,6 +73,7 @@ class _PDFPageState extends State<PDFPage> {
       panLimit: widget.panLimit,
       maxScale: widget.maxScale,
       initialScale: widget.initialScale,
+      initialOffset: Offset(0,100),
       child: Image(image: provider),
     );
   }
